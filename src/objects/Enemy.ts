@@ -9,7 +9,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
   pursue(t: Phaser.GameObjects.Sprite) {
     const a = Phaser.Math.Angle.Between(this.x, this.y, t.x, t.y);
-    this.scene.physics.velocityFromRotation(a, this.speed, this.body.velocity);
+    if (this.body) {
+      this.scene.physics.velocityFromRotation(a, this.speed, (this.body as Phaser.Physics.Arcade.Body).velocity);
+    }
     this.setRotation(a + Math.PI / 2);
   }
 }

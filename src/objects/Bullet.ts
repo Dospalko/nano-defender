@@ -8,10 +8,12 @@ export default class Bullet extends Phaser.Physics.Arcade.Image {
     this.born = 0;
     this.setActive(true).setVisible(true);
     this.setPosition(x, y).setRotation(a + Math.PI / 2);
-    this.scene.physics.velocityFromRotation(a, this.speed, this.body.velocity);
+    if (this.body) {
+      this.scene.physics.velocityFromRotation(a, this.speed, this.body.velocity);
+    }
   }
-  update(_, d: number) {
+update(_: unknown, d: number): void {
     this.born += d;
     if (this.born > this.lifespan) this.setActive(false).setVisible(false);
-  }
+}
 }
