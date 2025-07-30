@@ -2,6 +2,7 @@ import { Scene } from "phaser";
 
 export default class BootScene extends Scene {
   constructor() { super("Boot"); }
+
   preload() {
     const g = this.add.graphics();
     g.fillStyle(0x00eaff).fillCircle(16, 16, 16);
@@ -14,5 +15,6 @@ export default class BootScene extends Scene {
     g.generateTexture("particle", 8, 8);
     g.destroy();
   }
+
   create() { this.scene.start("Game"); }
 }
