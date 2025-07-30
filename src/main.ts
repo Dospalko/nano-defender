@@ -1,15 +1,25 @@
-// src/main.ts
 import Phaser from "phaser";
 import BootScene from "@/scenes/BootScene";
 import GameScene from "@/scenes/GameScene";
 import GameOverScene from "@/scenes/GameOverScene";
 
-export default new Phaser.Game({
+const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  parent: "game",
-  width: 800,
-  height: 600,
-  backgroundColor: "#111111",
-  physics: { default: "arcade", arcade: { debug: false } },
-  scene: [BootScene, GameScene, GameOverScene]
-});
+  parent: "game", // make sure your index.html has <div id="game"></div>
+  backgroundColor: "#000",
+  physics: {
+    default: "arcade",
+    arcade: {
+      debug: false,
+    },
+  },
+  scale: {
+    mode: Phaser.Scale.RESIZE,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  },
+  scene: [BootScene, GameScene, GameOverScene],
+};
+
+new Phaser.Game(config);

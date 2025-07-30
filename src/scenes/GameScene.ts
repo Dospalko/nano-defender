@@ -28,8 +28,16 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // Dynamické fullscreen prispôsobenie
+    this.scale.scaleMode = Phaser.Scale.ScaleModes.RESIZE;
+    this.scale.refresh();
+
+    const centerX = this.scale.width / 2;
+    const centerY = this.scale.height / 2;
+
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.player = new Player(this, 400, 300);
+    this.player = new Player(this, centerX, centerY);
+
     this.bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true, maxSize: 40 });
     this.enemies = this.physics.add.group({ classType: Enemy });
 
@@ -42,8 +50,16 @@ export default class GameScene extends Phaser.Scene {
       quantity: 0
     });
 
-    this.scoreText = this.add.text(10, 10, `Score: ${this.score}`, { fontSize: "18px", color: "#fff" }).setDepth(10);
-    this.healthText = this.add.text(700, 10, `Health: ${this.health}`, { fontSize: "18px", color: "#f55" }).setDepth(10);
+    this.scoreText = this.add.text(10, 10, `Score: ${this.score}`, {
+      fontSize: "18px",
+      color: "#fff"
+    }).setDepth(10);
+
+    this.healthText = this.add.text(this.scale.width - 150, 10, `Health: ${this.health}`, {
+      fontSize: "18px",
+      color: "#f55"
+    }).setDepth(10);
+
     this.input.on("pointerdown", () => this.shoot());
 
     this.physics.add.overlap(this.bullets, this.enemies, (b, e) => this.hitEnemy(b as Bullet, e as Enemy));
@@ -80,11 +96,14 @@ export default class GameScene extends Phaser.Scene {
   }
 
   spawnEnemy() {
+    const margin = 40;
+    const w = this.scale.width;
+    const h = this.scale.height;
     const pos = [
-      { x: Phaser.Math.Between(0, 800), y: -40 },
-      { x: 840, y: Phaser.Math.Between(0, 600) },
-      { x: Phaser.Math.Between(0, 800), y: 640 },
-      { x: -40, y: Phaser.Math.Between(0, 600) }
+      { x: Phaser.Math.Between(0, w), y: -margin },
+      { x: w + margin, y: Phaser.Math.Between(0, h) },
+      { x: Phaser.Math.Between(0, w), y: h + margin },
+      { x: -margin, y: Phaser.Math.Between(0, h) }
     ][Phaser.Math.Between(0, 3)];
     this.enemies.add(new Enemy(this, pos.x, pos.y));
   }
