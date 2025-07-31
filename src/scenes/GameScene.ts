@@ -3,6 +3,7 @@ import Player from "@/objects/Player";
 import Bullet from "@/objects/Bullet";
 import Enemy from "@/objects/Enemy";
 import PowerUp, { PowerType } from "@/objects/PowerUp";
+import FastEnemy from "@/objects/FastEnemy";
 
 export default class GameScene extends Phaser.Scene {
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -102,7 +103,10 @@ export default class GameScene extends Phaser.Scene {
       { x: Phaser.Math.Between(0, w), y: h + m },
       { x: -m, y: Phaser.Math.Between(0, h) }
     ][Phaser.Math.Between(0, 3)];
-    this.enemies.add(new Enemy(this, p.x, p.y));
+    // Only spawn normal or fast enemies
+    const types = [Enemy, FastEnemy];
+    const EnemyClass = Phaser.Utils.Array.GetRandom(types);
+    this.enemies.add(new EnemyClass(this, p.x, p.y));
   }
 
   spawnPowerUp() {
@@ -141,8 +145,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   hitEnemy(bullet: Bullet, enemy: Enemy) {
-    if (!bullet.active) return; // Only process if bullet is active
-    bullet.setActive(false).setVisible(false); // deactivate bullet on hit
+    if (!bullet.active) return;
+    bullet.setActive(false).setVisible(false);
     this.particles.explode(8, enemy.x, enemy.y);
     enemy.destroy();
     this.score += 10;
