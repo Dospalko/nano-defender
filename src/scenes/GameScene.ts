@@ -165,6 +165,13 @@ export default class GameScene extends Phaser.Scene {
   }
 
   damagePlayerBullet(bullet: Bullet) {
+    /* The line `if (!bullet.active) return; // Only process if bullet is active` is a check to ensure
+    that the code inside the block is only executed if the `bullet` object is currently active. If
+    the `bullet` is not active, the function will exit early and not perform any further processing
+    on that bullet. This check helps to avoid unnecessary operations on inactive bullets, improving
+    efficiency and preventing potential errors that could occur if trying to process inactive
+    objects. */
+    if (!bullet.active) return; // Only process if bullet is active
     bullet.setActive(false).setVisible(false);
     if (this.shield || this.isGameOver) return;
     this.health--;
