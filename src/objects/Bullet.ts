@@ -1,8 +1,14 @@
 // src/objects/Bullet.ts
 import Phaser from "phaser";
-export default class Bullet extends Phaser.Physics.Arcade.Image {
+export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   speed = 500;
-  fire(x:number,y:number,a:number){
+  constructor(scene: Phaser.Scene, x: number, y: number) {
+    super(scene, x, y, "bullet");
+    scene.add.existing(this);
+    scene.physics.add.existing(this);
+    this.setActive(false).setVisible(false);
+  }
+  fire(x: number, y: number, a: number) {
     this.setActive(true).setVisible(true);
     this.setPosition(x, y).setRotation(a + Math.PI / 2);
     if (this.body) {

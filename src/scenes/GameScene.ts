@@ -37,6 +37,8 @@ export default class GameScene extends Phaser.Scene {
   lastShot = 0;
   shootCooldown = 400; // ms
 
+  wasd: any;
+
   constructor() { super("Game"); }
 
   init() {
@@ -52,6 +54,13 @@ export default class GameScene extends Phaser.Scene {
     const { width, height } = this.scale;
 
     this.cursors = this.input.keyboard!.createCursorKeys();
+    // Add WASD keys
+    this.wasd = this.input.keyboard!.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D
+    });
     this.player = new Player(this, width / 2, height / 2);
 
     this.bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true, maxSize: 120 });
@@ -83,7 +92,7 @@ export default class GameScene extends Phaser.Scene {
   update(_t: number, dt: number) {
     if (this.isGameOver) return;
     this.lastShot += dt;
-    this.player.update(this.cursors, this.input.activePointer);
+    this.player.update(this.cursors, this.input.activePointer, this.wasd);
 
     this.lastEnemy += dt;
     if (this.lastEnemy > 1000) {
@@ -127,17 +136,22 @@ export default class GameScene extends Phaser.Scene {
   shoot() {
     if (this.lastShot < this.shootCooldown) return;
     this.lastShot = 0;
+    const angle = Phaser.Math.Angle.Between(
+      this.player.x,
+      this.player.y,
+      this.input.activePointer.worldX,
+      this.input.activePointer.worldY
+    );
     if (this.triple) {
-      [-0.25, 0, 0.25].forEach(offset => this.fireSingleBullet(offset));
+      [-0.25, 0, 0.25].forEach(offset => this.fireSingleBullet(angle + offset));
     } else {
-      this.fireSingleBullet(0);
+      this.fireSingleBullet(angle);
     }
   }
-  fireSingleBullet(offset: number) {
+  fireSingleBullet(angle: number) {
     const bullet = this.bullets.get() as Bullet;
     if (!bullet) return;
-    const base = Phaser.Math.Angle.Between(this.player.x, this.player.y, this.input.activePointer.worldX, this.input.activePointer.worldY);
-    bullet.fire(this.player.x, this.player.y, base + offset);
+    bullet.fire(this.player.x, this.player.y, angle);
   }
 
   /** ---------- Collisions ---------- */
