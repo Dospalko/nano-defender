@@ -29,6 +29,9 @@ export default class GameScene extends Phaser.Scene {
 
   isGameOver = false;
 
+  lastShot = 0;
+  shootCooldown = 400; // ms
+
   constructor() { super("Game"); }
 
   init() {
@@ -72,7 +75,7 @@ export default class GameScene extends Phaser.Scene {
 
   update(_t: number, dt: number) {
     if (this.isGameOver) return;
-
+    this.lastShot += dt;
     this.player.update(this.cursors, this.input.activePointer);
 
     this.lastEnemy += dt;
@@ -112,6 +115,8 @@ export default class GameScene extends Phaser.Scene {
 
   /** ---------- Shooting ---------- */
   shoot() {
+    if (this.lastShot < this.shootCooldown) return;
+    this.lastShot = 0;
     if (this.triple) {
       [-0.25, 0, 0.25].forEach(offset => this.fireSingleBullet(offset));
     } else {
@@ -136,7 +141,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   hitEnemy(bullet: Bullet, enemy: Enemy) {
-    bullet.setActive(false).setVisible(false);
+    if (!bullet.active) return; // Only process if bullet is active
+    bullet.setActive(false).setVisible(false); // deactivate bullet on hit
     this.particles.explode(8, enemy.x, enemy.y);
     enemy.destroy();
     this.score += 10;
