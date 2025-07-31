@@ -1,3 +1,5 @@
+/* The GameOverScene class in TypeScript extends Phaser.Scene to display the final score and a restart
+prompt upon game over. */
 import Phaser from "phaser";
 
 export default class GameOverScene extends Phaser.Scene {

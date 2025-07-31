@@ -1,9 +1,12 @@
+/* The `GameScene` class in TypeScript manages the main game scene with player controls, enemy
+spawning, power-ups, shooting mechanics, collisions, power-up effects, and game over handling. */
 import Phaser from "phaser";
 import Player from "@/objects/Player";
 import Bullet from "@/objects/Bullet";
 import Enemy from "@/objects/Enemy";
 import PowerUp, { PowerType } from "@/objects/PowerUp";
 import FastEnemy from "@/objects/FastEnemy";
+import ShooterEnemy from "@/objects/ShooterEnemy";
 
 export default class GameScene extends Phaser.Scene {
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -11,6 +14,7 @@ export default class GameScene extends Phaser.Scene {
   bullets!: Phaser.Physics.Arcade.Group;
   enemies!: Phaser.Physics.Arcade.Group;
   powerUps!: Phaser.Physics.Arcade.Group;
+  enemyBullets!: Phaser.Physics.Arcade.Group;
   particles!: Phaser.GameObjects.Particles.ParticleEmitter;
 
   lastEnemy = 0;
@@ -53,6 +57,7 @@ export default class GameScene extends Phaser.Scene {
     this.bullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true, maxSize: 120 });
     this.enemies = this.physics.add.group({ classType: Enemy });
     this.powerUps = this.physics.add.group({ classType: PowerUp, runChildUpdate: true });
+    this.enemyBullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true, maxSize: 60 });
 
     this.particles = this.add.particles(0, 0, "particle", {
       speed: { min: 50, max: 150 },
@@ -72,6 +77,7 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.bullets, this.enemies, (b, e) => this.hitEnemy(b as Bullet, e as Enemy));
     this.physics.add.overlap(this.player, this.enemies, (_p, e) => this.damagePlayer(e as Enemy));
     this.physics.add.overlap(this.player, this.powerUps, (_p, p) => this.collectPowerUp(p as PowerUp));
+    this.physics.add.overlap(this.player, this.enemyBullets, (_p, b) => this.damagePlayerBullet(b as Bullet));
   }
 
   update(_t: number, dt: number) {
@@ -104,7 +110,7 @@ export default class GameScene extends Phaser.Scene {
       { x: -m, y: Phaser.Math.Between(0, h) }
     ][Phaser.Math.Between(0, 3)];
     // Only spawn normal or fast enemies
-    const types = [Enemy, FastEnemy];
+    const types = [Enemy, FastEnemy, ShooterEnemy];
     const EnemyClass = Phaser.Utils.Array.GetRandom(types);
     this.enemies.add(new EnemyClass(this, p.x, p.y));
   }
@@ -138,7 +144,15 @@ export default class GameScene extends Phaser.Scene {
   damagePlayer(enemy: Enemy) {
     if (this.isGameOver) return;
     enemy.destroy();
-    if (this.shield) return;                 // ignorujeme zranenie
+    if (this.shield) return;                // ignorujeme zranenie
+    this.health--;
+    this.healthText.setText(`Health: ${this.health}`);
+    if (this.health <= 0) this.gameOver();
+  }
+
+  damagePlayerBullet(bullet: Bullet) {
+    bullet.setActive(false).setVisible(false);
+    if (this.shield || this.isGameOver) return;
     this.health--;
     this.healthText.setText(`Health: ${this.health}`);
     if (this.health <= 0) this.gameOver();
@@ -146,7 +160,7 @@ export default class GameScene extends Phaser.Scene {
 
   hitEnemy(bullet: Bullet, enemy: Enemy) {
     if (!bullet.active) return;
-    bullet.setActive(false).setVisible(false);
+    bullet.setActive(false).setVisible(false); 
     this.particles.explode(8, enemy.x, enemy.y);
     enemy.destroy();
     this.score += 10;
