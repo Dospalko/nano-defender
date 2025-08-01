@@ -4,13 +4,15 @@ import Phaser from "phaser";
 
 export default class GameOverScene extends Phaser.Scene {
   private finalScore = 0;
+  private playerName = "";
 
   constructor() {
     super("GameOver");
   }
 
-  init(data: { score: number }) {
+  init(data: { score: number, playerName?: string }) {
     this.finalScore = data.score;
+    this.playerName = data.playerName || "Player";
   }
 
   create() {
@@ -42,21 +44,22 @@ export default class GameOverScene extends Phaser.Scene {
     }).setOrigin(0.5).setAlpha(0);
     this.tweens.add({ targets: gameOverText, alpha: 1, duration: 800, ease: "Quad.easeOut" });
 
-    const scoreText = this.add.text(centerX, centerY, `Score: ${this.finalScore}`, {
-      fontFamily: "Arial Black, Arial, sans-serif",
-      fontSize: "36px",
-      color: "#fff",
-      stroke: "#222",
-      strokeThickness: 4
+    // Show player name
+    this.add.text(centerX, centerY - 10, `Player: ${this.playerName}`, {
+      fontSize: "28px",
+      color: "#35ff74",
+      fontFamily: "Arial Black, Arial, sans-serif"
+    }).setOrigin(0.5);
+
+    const scoreText = this.add.text(centerX, centerY + 30, `Score: ${this.finalScore}`, {
+      fontSize: "32px",
+      color: "#fff"
     }).setOrigin(0.5).setAlpha(0);
     this.tweens.add({ targets: scoreText, alpha: 1, duration: 1200, ease: "Quad.easeOut" });
 
     const restartText = this.add.text(centerX, centerY + 80, "Click to Restart", {
-      fontFamily: "Arial Black, Arial, sans-serif",
-      fontSize: "28px",
-      color: "#35ff74",
-      stroke: "#fff",
-      strokeThickness: 3
+      fontSize: "24px",
+      color: "#afa"
     }).setOrigin(0.5).setAlpha(0);
     this.tweens.add({ targets: restartText, alpha: 1, duration: 1800, ease: "Quad.easeOut" });
 
