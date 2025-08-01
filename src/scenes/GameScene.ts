@@ -152,7 +152,7 @@ export default class GameScene extends Phaser.Scene {
         this.wavePause = true;
         this.time.delayedCall(1800, () => {
           this.buffText.setText("");
-          this.waveManager.startWave(wave + 1);
+          this.showShopAfterWave();
         });
       }
     });
@@ -290,6 +290,11 @@ export default class GameScene extends Phaser.Scene {
     this.player.setActive(false).setVisible(false);
     this.playerNameText.setVisible(false);
     this.time.delayedCall(500, () => this.scene.start("GameOver", { score: this.score, playerName: this.playerName }));
+  }
+
+  showShopAfterWave() {
+    this.scene.pause();
+    this.scene.launch("Shop", { score: this.score });
   }
 
   spawnPowerUp() {
