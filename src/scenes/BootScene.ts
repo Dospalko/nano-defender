@@ -26,5 +26,5 @@ export default class BootScene extends Scene {
     g.destroy();
   }
 
-  create() { this.scene.start("Game"); }
+  create() { this.scene.start("Start"); }
 }

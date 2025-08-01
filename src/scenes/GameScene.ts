@@ -39,15 +39,19 @@ export default class GameScene extends Phaser.Scene {
 
   wasd: any;
 
+  playerName: string = "";
+  playerNameText!: Phaser.GameObjects.Text;
+
   constructor() { super("Game"); }
 
-  init() {
+  init(data: { playerName?: string }) {
     this.lastEnemy = 0;
     this.lastPower = 0;
     this.score = 0;
     this.health = 3;
     this.triple = this.speedBoost = this.shield = false;
     this.isGameOver = false;
+    this.playerName = data.playerName || "Player";
   }
 
   create() {
@@ -81,6 +85,15 @@ export default class GameScene extends Phaser.Scene {
     this.healthText = this.add.text(width - 150, 10, `Health: ${this.health}`, { fontSize: "18px", color: "#f55" }).setDepth(10);
     this.buffText = this.add.text(width / 2, 40, "", { fontSize: "22px", color: "#fff" }).setOrigin(0.5).setDepth(10);
 
+    // Display player name above player
+    this.playerNameText = this.add.text(this.player.x, this.player.y - 40, this.playerName, {
+      fontSize: "20px",
+      color: "#35ff74",
+      fontFamily: "Arial Black, Arial, sans-serif",
+      stroke: "#222",
+      strokeThickness: 3
+    }).setOrigin(0.5).setDepth(10);
+
     this.input.on("pointerdown", () => this.shoot());
 
     this.physics.add.overlap(this.bullets, this.enemies, (b, e) => this.hitEnemy(b as Bullet, e as Enemy));
@@ -93,6 +106,8 @@ export default class GameScene extends Phaser.Scene {
     if (this.isGameOver) return;
     this.lastShot += dt;
     this.player.update(this.cursors, this.input.activePointer, this.wasd);
+    // Update player name position
+    this.playerNameText.setPosition(this.player.x, this.player.y - 40);
 
     this.lastEnemy += dt;
     if (this.lastEnemy > 1000) {
@@ -241,6 +256,7 @@ export default class GameScene extends Phaser.Scene {
     this.isGameOver = true;
     this.buffText.setText("");
     this.player.setActive(false).setVisible(false);
-    this.time.delayedCall(500, () => this.scene.start("GameOver", { score: this.score }));
+    this.playerNameText.setVisible(false);
+    this.time.delayedCall(500, () => this.scene.start("GameOver", { score: this.score, playerName: this.playerName }));
   }
 }

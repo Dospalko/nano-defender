@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import BootScene from "@/scenes/BootScene";
 import GameScene from "@/scenes/GameScene";
 import GameOverScene from "@/scenes/GameOverScene";
+import StartScene from "./scenes/StartScene";
+import ControlsScene from "./scenes/ControlsScene";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -19,7 +21,7 @@ const config: Phaser.Types.Core.GameConfig = {
     width: window.innerWidth,
     height: window.innerHeight,
   },
-  scene: [BootScene, GameScene, GameOverScene],
+  scene: [BootScene, StartScene, ControlsScene, GameScene, GameOverScene ],
 };
 
 new Phaser.Game(config);
