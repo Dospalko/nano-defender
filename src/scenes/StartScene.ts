@@ -68,6 +68,30 @@ export default class StartScene extends Phaser.Scene {
     this.tweens.add({ targets: startBtn, alpha: 1, duration: 1600, ease: "Quad.easeOut" });
     this.tweens.add({ targets: startBtn, scale: { from: 1, to: 1.05 }, duration: 900, yoyo: true, repeat: -1 });
 
+    // Show Controls button
+    const controlsBtn = this.add.text(centerX + 10, centerY + 180, "Show Controls", {
+      fontSize: "28px",
+      color: "#fff",
+      backgroundColor: "#3742fa",
+      fontFamily: "Arial Black, Arial, sans-serif",
+      padding: { left: 24, right: 24, top: 12, bottom: 12 },
+      stroke: "#fff",
+      strokeThickness: 3,
+      shadow: { offsetX: 0, offsetY: 0, color: "#3742fa", blur: 10, fill: true }
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0.9);
+    this.tweens.add({ targets: controlsBtn, scale: { from: 1, to: 1.05 }, duration: 900, yoyo: true, repeat: -1 });
+
+    controlsBtn.on("pointerover", () => {
+      this.tweens.add({ targets: controlsBtn, scale: 1.15, duration: 150, ease: "Back.easeOut" });
+    });
+    controlsBtn.on("pointerout", () => {
+      this.tweens.add({ targets: controlsBtn, scale: 1, duration: 150, ease: "Quad.easeOut" });
+    });
+    controlsBtn.on("pointerdown", () => {
+      if (this.nameInput) this.nameInput.remove();
+      this.scene.start("Controls");
+    });
+
     // Enable button only if name is typed
     this.nameInput.addEventListener("input", () => {
       if (this.nameInput!.value.trim().length > 0) {
