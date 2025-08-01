@@ -42,6 +42,13 @@ export default class GameScene extends Phaser.Scene {
   playerName: string = "";
   playerNameText!: Phaser.GameObjects.Text;
 
+  level = 1;
+  enemiesToSpawn = 0;
+  enemiesSpawned = 0;
+  enemiesLeft = 0;
+  levelText!: Phaser.GameObjects.Text;
+  levelInProgress = false;
+
   constructor() { super("Game"); }
 
   init(data: { playerName?: string }) {
@@ -52,6 +59,8 @@ export default class GameScene extends Phaser.Scene {
     this.triple = this.speedBoost = this.shield = false;
     this.isGameOver = false;
     this.playerName = data.playerName || "Player";
+    this.level = 1;
+    this.levelInProgress = false;
   }
 
   create() {
@@ -84,6 +93,7 @@ export default class GameScene extends Phaser.Scene {
     this.scoreText = this.add.text(10, 10, "Score: 0", { fontSize: "18px", color: "#fff" }).setDepth(10);
     this.healthText = this.add.text(width - 150, 10, `Health: ${this.health}`, { fontSize: "18px", color: "#f55" }).setDepth(10);
     this.buffText = this.add.text(width / 2, 40, "", { fontSize: "22px", color: "#fff" }).setOrigin(0.5).setDepth(10);
+    this.levelText = this.add.text(this.scale.width / 2, 10, `Level: 1`, { fontSize: "22px", color: "#ffa502" }).setOrigin(0.5).setDepth(10);
 
     // Display player name above player
     this.playerNameText = this.add.text(this.player.x, this.player.y - 40, this.playerName, {
@@ -100,19 +110,27 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.enemies, (_p, e) => this.damagePlayer(e as Enemy));
     this.physics.add.overlap(this.player, this.powerUps, (_p, p) => this.collectPowerUp(p as PowerUp));
     this.physics.add.overlap(this.player, this.enemyBullets, (_p, b) => this.damagePlayerBullet(b as Bullet));
+    this.startLevel(this.level);
   }
 
   update(_t: number, dt: number) {
     if (this.isGameOver) return;
     this.lastShot += dt;
     this.player.update(this.cursors, this.input.activePointer, this.wasd);
-    // Update player name position
     this.playerNameText.setPosition(this.player.x, this.player.y - 40);
 
-    this.lastEnemy += dt;
-    if (this.lastEnemy > 1000) {
-      this.spawnEnemy();
-      this.lastEnemy = 0;
+    if (this.levelInProgress) {
+      this.lastEnemy += dt;
+      if (this.lastEnemy > 1000 && this.enemiesSpawned < this.enemiesToSpawn) {
+        this.spawnEnemy();
+        this.lastEnemy = 0;
+      }
+      // Check if all enemies defeated
+      this.enemiesLeft = this.enemies.countActive(true);
+      if (this.enemiesSpawned === this.enemiesToSpawn && this.enemiesLeft === 0) {
+        this.levelInProgress = false;
+        this.showLevelComplete();
+      }
     }
 
     this.lastPower += dt;
@@ -122,6 +140,25 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.enemies.children.iterate(o => { (o as Enemy).pursue(this.player); return true; });
+  }
+
+  startLevel(level: number) {
+    this.levelText.setText(`Level: ${level}`);
+    this.enemiesToSpawn = 5 + level * 3;
+    this.enemiesSpawned = 0;
+    this.levelInProgress = true;
+    this.time.delayedCall(800, () => {
+      this.buffText.setText(`Level ${level} Start!`).setColor("#ffa502");
+      this.time.delayedCall(1200, () => this.buffText.setText(""));
+    });
+  }
+
+  showLevelComplete() {
+    this.buffText.setText(`Level ${this.level} Complete!`).setColor("#35ff74");
+    this.time.delayedCall(1800, () => {
+      this.level++;
+      this.startLevel(this.level);
+    });
   }
 
   /** ---------- Spawning ---------- */
@@ -135,8 +172,12 @@ export default class GameScene extends Phaser.Scene {
     ][Phaser.Math.Between(0, 3)];
     // Only spawn normal or fast enemies
     const types = [Enemy, FastEnemy, ShooterEnemy];
-    const EnemyClass = Phaser.Utils.Array.GetRandom(types);
+    // Increase chance of harder enemies on higher levels
+    let EnemyClass = Enemy;
+    if (this.level > 2 && Math.random() < 0.4) EnemyClass = FastEnemy;
+    if (this.level > 4 && Math.random() < 0.3) EnemyClass = ShooterEnemy;
     this.enemies.add(new EnemyClass(this, p.x, p.y));
+    this.enemiesSpawned++;
   }
 
   spawnPowerUp() {
