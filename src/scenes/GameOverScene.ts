@@ -19,52 +19,118 @@ export default class GameOverScene extends Phaser.Scene {
     const centerX = this.scale.width / 2;
     const centerY = this.scale.height / 2;
 
-    // Background overlay
-    this.add.rectangle(centerX, centerY, this.scale.width, this.scale.height, 0x222233, 0.85).setDepth(-1);
+    // Animated gradient background
+    const bg = this.add.rectangle(centerX, centerY, this.scale.width, this.scale.height, 0x222233, 0.95).setDepth(-1);
+    this.tweens.add({ targets: bg, alpha: { from: 0.85, to: 0.95 }, duration: 2000, yoyo: true, repeat: -1 });
 
-    // Particle burst
+    // Multiple particle bursts
     const particles = this.add.particles(centerX, centerY, "particle", {
       speed: { min: 100, max: 300 },
       angle: { min: 0, max: 360 },
-      lifespan: 800,
-      scale: { start: 1.5, end: 0 },
+      lifespan: 1200,
+      scale: { start: 2, end: 0 },
       blendMode: "ADD",
-      quantity: 40
+      quantity: 0
     });
-    particles.explode(40, centerX, centerY);
+    particles.explode(60, centerX, centerY);
+    
+    // Additional smaller bursts
+    this.time.delayedCall(500, () => particles.explode(30, centerX - 100, centerY - 50));
+    this.time.delayedCall(800, () => particles.explode(30, centerX + 100, centerY + 50));
 
-    // Fade-in text
-    const gameOverText = this.add.text(centerX, centerY - 60, "GAME OVER", {
+    // Animated title with shake effect
+    const gameOverText = this.add.text(centerX, centerY - 120, "GAME OVER", {
       fontFamily: "Arial Black, Arial, sans-serif",
-      fontSize: "64px",
+      fontSize: "72px",
       color: "#ff3366",
       stroke: "#fff",
-      strokeThickness: 6,
-      shadow: { offsetX: 2, offsetY: 2, color: "#000", blur: 8, fill: true }
+      strokeThickness: 8,
+      shadow: { offsetX: 3, offsetY: 3, color: "#000", blur: 12, fill: true }
     }).setOrigin(0.5).setAlpha(0);
-    this.tweens.add({ targets: gameOverText, alpha: 1, duration: 800, ease: "Quad.easeOut" });
+    this.tweens.add({ targets: gameOverText, alpha: 1, duration: 800, ease: "Bounce.easeOut" });
+    this.tweens.add({ targets: gameOverText, x: { from: centerX - 5, to: centerX + 5 }, duration: 100, yoyo: true, repeat: -1 });
 
-    // Show player name
-    this.add.text(centerX, centerY - 10, `Player: ${this.playerName}`, {
-      fontSize: "28px",
-      color: "#35ff74",
-      fontFamily: "Arial Black, Arial, sans-serif"
-    }).setOrigin(0.5);
-
-    const scoreText = this.add.text(centerX, centerY + 30, `Score: ${this.finalScore}`, {
+    // Player name with glow effect
+    const playerText = this.add.text(centerX, centerY - 50, `Player: ${this.playerName}`, {
       fontSize: "32px",
-      color: "#fff"
+      color: "#35ff74",
+      fontFamily: "Arial Black, Arial, sans-serif",
+      stroke: "#fff",
+      strokeThickness: 4,
+      shadow: { offsetX: 0, offsetY: 0, color: "#35ff74", blur: 16, fill: true }
+    }).setOrigin(0.5).setAlpha(0);
+    this.tweens.add({ targets: playerText, alpha: 1, duration: 1000, ease: "Quad.easeOut" });
+
+    // Score with counter animation
+    const scoreText = this.add.text(centerX, centerY, `Score: 0`, {
+      fontSize: "40px",
+      color: "#fff",
+      fontFamily: "Arial Black, Arial, sans-serif",
+      stroke: "#222",
+      strokeThickness: 4
     }).setOrigin(0.5).setAlpha(0);
     this.tweens.add({ targets: scoreText, alpha: 1, duration: 1200, ease: "Quad.easeOut" });
+    
+    // Animate score counting up
+    let currentScore = 0;
+    const scoreCounter = this.time.addEvent({
+      delay: 30,
+      callback: () => {
+        currentScore += Math.max(1, Math.floor(this.finalScore / 50));
+        if (currentScore >= this.finalScore) {
+          currentScore = this.finalScore;
+          scoreCounter.destroy();
+        }
+        scoreText.setText(`Score: ${currentScore}`);
+      },
+      repeat: -1
+    });
 
-    const restartText = this.add.text(centerX, centerY + 80, "Click to Restart", {
-      fontSize: "24px",
-      color: "#afa"
-    }).setOrigin(0.5).setAlpha(0);
-    this.tweens.add({ targets: restartText, alpha: 1, duration: 1800, ease: "Quad.easeOut" });
+    // Interactive buttons with hover effects
+    const restartBtn = this.add.text(centerX - 100, centerY + 80, "Restart", {
+      fontSize: "32px",
+      color: "#fff",
+      backgroundColor: "#35ff74",
+      fontFamily: "Arial Black, Arial, sans-serif",
+      padding: { left: 24, right: 24, top: 12, bottom: 12 },
+      stroke: "#fff",
+      strokeThickness: 3
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0);
+    this.tweens.add({ targets: restartBtn, alpha: 1, duration: 1600, ease: "Quad.easeOut" });
 
-    this.input.once("pointerdown", () => {
-      this.scene.start("Game");
+    const mainMenuBtn = this.add.text(centerX + 100, centerY + 80, "Main Menu", {
+      fontSize: "32px",
+      color: "#fff",
+      backgroundColor: "#3ca6ff",
+      fontFamily: "Arial Black, Arial, sans-serif",
+      padding: { left: 24, right: 24, top: 12, bottom: 12 },
+      stroke: "#fff",
+      strokeThickness: 3
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setAlpha(0);
+    this.tweens.add({ targets: mainMenuBtn, alpha: 1, duration: 1800, ease: "Quad.easeOut" });
+
+    // Button hover effects
+    restartBtn.on("pointerover", () => {
+      this.tweens.add({ targets: restartBtn, scale: 1.1, duration: 200 });
+    });
+    restartBtn.on("pointerout", () => {
+      this.tweens.add({ targets: restartBtn, scale: 1, duration: 200 });
+    });
+
+    mainMenuBtn.on("pointerover", () => {
+      this.tweens.add({ targets: mainMenuBtn, scale: 1.1, duration: 200 });
+    });
+    mainMenuBtn.on("pointerout", () => {
+      this.tweens.add({ targets: mainMenuBtn, scale: 1, duration: 200 });
+    });
+
+    // Button click handlers
+    restartBtn.on("pointerdown", () => {
+      this.scene.start("Game", { playerName: this.playerName });
+    });
+
+    mainMenuBtn.on("pointerdown", () => {
+      this.scene.start("Start");
     });
   }
 }
