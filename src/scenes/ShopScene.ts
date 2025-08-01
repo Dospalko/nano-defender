@@ -335,8 +335,9 @@ export default class ShopScene extends Phaser.Scene {
       })
 
       target.on("pointerdown", () => {
-        this.scene.stop()
-        this.scene.resume("Game")
+        if (this.onClose) this.onClose();
+        this.scene.stop();
+        this.scene.resume("Game");
       })
     })
 

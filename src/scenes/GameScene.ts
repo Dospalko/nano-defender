@@ -294,7 +294,13 @@ export default class GameScene extends Phaser.Scene {
 
   showShopAfterWave() {
     this.scene.pause();
-    this.scene.launch("Shop", { score: this.score });
+    this.scene.launch("Shop", {
+      score: this.score,
+      onClose: () => {
+        // Start next wave after shop closes
+        this.waveManager.startWave(this.waveManager.getCurrentWave() + 1);
+      }
+    });
   }
 
   spawnPowerUp() {
