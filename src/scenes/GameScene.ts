@@ -48,6 +48,8 @@ export default class GameScene extends Phaser.Scene {
   waveManager!: WaveManager;
   wavePause: boolean = false;
 
+  enemiesLeftStatic = 0;
+
   constructor() { super("Game"); }
 
   init(data: { playerName?: string }) {
@@ -136,6 +138,8 @@ export default class GameScene extends Phaser.Scene {
       enemyGroup: this.enemies,
       onWaveStart: (wave) => {
         this.waveText.setText(`Wave: ${wave}`);
+        this.enemiesLeftStatic = 5 + wave * 3;
+        this.enemiesLeftText.setText(`Enemies Left: ${this.enemiesLeftStatic}`);
         this.buffText.setText(`Wave ${wave} Incoming!`).setColor("#ffa502");
         this.wavePause = true;
         this.time.delayedCall(1200, () => {
@@ -161,12 +165,10 @@ export default class GameScene extends Phaser.Scene {
     this.lastShot += dt;
     this.player.update(this.cursors, this.input.activePointer, this.wasd);
     this.playerNameText.setPosition(this.player.x, this.player.y - 40);
-    // Update HUD
+    // Only update HUD for score, health, wave
     this.scoreText.setText(`Score: ${this.score}`);
     this.healthText.setText(`Health: ${this.health}`);
     this.waveText.setText(`Wave: ${this.waveManager.getCurrentWave()}`);
-    const enemiesLeft = this.enemies.countActive(true);
-    this.enemiesLeftText.setText(`Enemies Left: ${enemiesLeft}`);
     this.lastPower += dt;
     if (this.lastPower > 10000) {
       this.spawnPowerUp();
@@ -229,6 +231,8 @@ export default class GameScene extends Phaser.Scene {
     enemy.destroy();
     this.score += 10;
     this.scoreText.setText(`Score: ${this.score}`);
+    this.enemiesLeftStatic = Math.max(0, this.enemiesLeftStatic - 1);
+    this.enemiesLeftText.setText(`Enemies Left: ${this.enemiesLeftStatic}`);
   }
 
   collectPowerUp(power: PowerUp) {
