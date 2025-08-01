@@ -29,6 +29,7 @@ export default class GameScene extends Phaser.Scene {
   healthText!: Phaser.GameObjects.Text;
   buffText!: Phaser.GameObjects.Text;
   waveText!: Phaser.GameObjects.Text;
+  enemiesLeftText!: Phaser.GameObjects.Text;
 
   triple = false;
   speedBoost = false;
@@ -87,10 +88,31 @@ export default class GameScene extends Phaser.Scene {
       quantity: 0
     });
 
-    this.scoreText = this.add.text(10, 10, "Score: 0", { fontSize: "18px", color: "#fff" }).setDepth(10);
-    this.healthText = this.add.text(width - 150, 10, `Health: ${this.health}`, { fontSize: "18px", color: "#f55" }).setDepth(10);
-    this.buffText = this.add.text(width / 2, 40, "", { fontSize: "22px", color: "#fff" }).setOrigin(0.5).setDepth(10);
-    this.waveText = this.add.text(this.scale.width / 2, 10, `Wave: 1`, { fontSize: "22px", color: "#ffa502" }).setOrigin(0.5).setDepth(10);
+    // Improved HUD layout and styling
+    const hudFont = {
+      fontSize: "22px",
+      color: "#fff",
+      fontFamily: "Arial Black, Arial, sans-serif",
+      stroke: "#222",
+      strokeThickness: 3,
+      shadow: { offsetX: 0, offsetY: 0, color: "#222", blur: 8, fill: true }
+    };
+    this.scoreText = this.add.text(32, 24, "Score: 0", hudFont).setOrigin(0, 0.5).setDepth(10);
+    this.healthText = this.add.text(this.scale.width - 32, 24, `Health: ${this.health}`, hudFont).setOrigin(1, 0.5).setDepth(10);
+    this.waveText = this.add.text(this.scale.width / 2, 24, `Wave: 1`, hudFont).setOrigin(0.5).setDepth(10);
+    this.enemiesLeftText = this.add.text(this.scale.width / 2, 60, `Enemies Left: 0`, {
+      ...hudFont,
+      color: "#ff4757",
+      stroke: "#fff",
+      strokeThickness: 4
+    }).setOrigin(0.5).setDepth(10);
+    this.buffText = this.add.text(this.scale.width / 2, 100, "", {
+      ...hudFont,
+      fontSize: "26px",
+      color: "#35ff74",
+      stroke: "#222",
+      strokeThickness: 4
+    }).setOrigin(0.5).setDepth(10);
 
     // Display player name above player
     this.playerNameText = this.add.text(this.player.x, this.player.y - 40, this.playerName, {
@@ -98,7 +120,8 @@ export default class GameScene extends Phaser.Scene {
       color: "#35ff74",
       fontFamily: "Arial Black, Arial, sans-serif",
       stroke: "#222",
-      strokeThickness: 3
+      strokeThickness: 3,
+      shadow: { offsetX: 0, offsetY: 0, color: "#222", blur: 8, fill: true }
     }).setOrigin(0.5).setDepth(10);
 
     this.input.on("pointerdown", () => this.shoot());
@@ -138,6 +161,12 @@ export default class GameScene extends Phaser.Scene {
     this.lastShot += dt;
     this.player.update(this.cursors, this.input.activePointer, this.wasd);
     this.playerNameText.setPosition(this.player.x, this.player.y - 40);
+    // Update HUD
+    this.scoreText.setText(`Score: ${this.score}`);
+    this.healthText.setText(`Health: ${this.health}`);
+    this.waveText.setText(`Wave: ${this.waveManager.getCurrentWave()}`);
+    const enemiesLeft = this.enemies.countActive(true);
+    this.enemiesLeftText.setText(`Enemies Left: ${enemiesLeft}`);
     this.lastPower += dt;
     if (this.lastPower > 10000) {
       this.spawnPowerUp();
