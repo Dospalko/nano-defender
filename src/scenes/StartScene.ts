@@ -54,7 +54,7 @@ export default class StartScene extends Phaser.Scene {
     document.body.appendChild(this.nameInput);
 
     // Glowing Start button (disabled by default)
-    const startBtn = this.add.text(centerX + 10, centerY + 120, "Start Game", {
+    const startBtn = this.add.text(centerX, centerY + 120, "Start Game", {
       fontSize: "36px",
       color: "#fff",
       backgroundColor: "#35ff74",
@@ -69,7 +69,7 @@ export default class StartScene extends Phaser.Scene {
     this.tweens.add({ targets: startBtn, scale: { from: 1, to: 1.05 }, duration: 900, yoyo: true, repeat: -1 });
 
     // Show Controls button
-    const controlsBtn = this.add.text(centerX + 10, centerY + 180, "Show Controls", {
+    const controlsBtn = this.add.text(centerX , centerY + 220, "Show Controls", {
       fontSize: "28px",
       color: "#fff",
       backgroundColor: "#3742fa",
