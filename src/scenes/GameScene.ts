@@ -7,6 +7,7 @@ import Enemy from "@/objects/Enemy";
 import PowerUp, { PowerType } from "@/objects/PowerUp";
 import FastEnemy from "@/objects/FastEnemy";
 import ShooterEnemy from "@/objects/ShooterEnemy";
+import WaveManager from "@/objects/WaveManager";
 
 export default class GameScene extends Phaser.Scene {
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -27,6 +28,8 @@ export default class GameScene extends Phaser.Scene {
   scoreText!: Phaser.GameObjects.Text;
   healthText!: Phaser.GameObjects.Text;
   buffText!: Phaser.GameObjects.Text;
+  waveText!: Phaser.GameObjects.Text;
+  enemiesLeftText!: Phaser.GameObjects.Text;
 
   triple = false;
   speedBoost = false;
@@ -42,6 +45,11 @@ export default class GameScene extends Phaser.Scene {
   playerName: string = "";
   playerNameText!: Phaser.GameObjects.Text;
 
+  waveManager!: WaveManager;
+  wavePause: boolean = false;
+
+  enemiesLeftStatic = 0;
+
   constructor() { super("Game"); }
 
   init(data: { playerName?: string }) {
@@ -52,6 +60,7 @@ export default class GameScene extends Phaser.Scene {
     this.triple = this.speedBoost = this.shield = false;
     this.isGameOver = false;
     this.playerName = data.playerName || "Player";
+    this.wavePause = false;
   }
 
   create() {
@@ -81,9 +90,31 @@ export default class GameScene extends Phaser.Scene {
       quantity: 0
     });
 
-    this.scoreText = this.add.text(10, 10, "Score: 0", { fontSize: "18px", color: "#fff" }).setDepth(10);
-    this.healthText = this.add.text(width - 150, 10, `Health: ${this.health}`, { fontSize: "18px", color: "#f55" }).setDepth(10);
-    this.buffText = this.add.text(width / 2, 40, "", { fontSize: "22px", color: "#fff" }).setOrigin(0.5).setDepth(10);
+    // Improved HUD layout and styling
+    const hudFont = {
+      fontSize: "22px",
+      color: "#fff",
+      fontFamily: "Arial Black, Arial, sans-serif",
+      stroke: "#222",
+      strokeThickness: 3,
+      shadow: { offsetX: 0, offsetY: 0, color: "#222", blur: 8, fill: true }
+    };
+    this.scoreText = this.add.text(32, 24, "Score: 0", hudFont).setOrigin(0, 0.5).setDepth(10);
+    this.healthText = this.add.text(this.scale.width - 32, 24, `Health: ${this.health}`, hudFont).setOrigin(1, 0.5).setDepth(10);
+    this.waveText = this.add.text(this.scale.width / 2, 24, `Wave: 1`, hudFont).setOrigin(0.5).setDepth(10);
+    this.enemiesLeftText = this.add.text(this.scale.width / 2, 60, `Enemies Left: 0`, {
+      ...hudFont,
+      color: "#ff4757",
+      stroke: "#fff",
+      strokeThickness: 4
+    }).setOrigin(0.5).setDepth(10);
+    this.buffText = this.add.text(this.scale.width / 2, 100, "", {
+      ...hudFont,
+      fontSize: "26px",
+      color: "#35ff74",
+      stroke: "#222",
+      strokeThickness: 4
+    }).setOrigin(0.5).setDepth(10);
 
     // Display player name above player
     this.playerNameText = this.add.text(this.player.x, this.player.y - 40, this.playerName, {
@@ -91,7 +122,8 @@ export default class GameScene extends Phaser.Scene {
       color: "#35ff74",
       fontFamily: "Arial Black, Arial, sans-serif",
       stroke: "#222",
-      strokeThickness: 3
+      strokeThickness: 3,
+      shadow: { offsetX: 0, offsetY: 0, color: "#222", blur: 8, fill: true }
     }).setOrigin(0.5).setDepth(10);
 
     this.input.on("pointerdown", () => this.shoot());
@@ -100,51 +132,49 @@ export default class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.enemies, (_p, e) => this.damagePlayer(e as Enemy));
     this.physics.add.overlap(this.player, this.powerUps, (_p, p) => this.collectPowerUp(p as PowerUp));
     this.physics.add.overlap(this.player, this.enemyBullets, (_p, b) => this.damagePlayerBullet(b as Bullet));
+    
+    this.waveManager = new WaveManager({
+      scene: this,
+      enemyGroup: this.enemies,
+      onWaveStart: (wave) => {
+        this.waveText.setText(`Wave: ${wave}`);
+        this.enemiesLeftStatic = 5 + wave * 3;
+        this.enemiesLeftText.setText(`Enemies Left: ${this.enemiesLeftStatic}`);
+        this.buffText.setText(`Wave ${wave} Incoming!`).setColor("#ffa502");
+        this.wavePause = true;
+        this.time.delayedCall(1200, () => {
+          this.buffText.setText("");
+          this.wavePause = false;
+        });
+      },
+      onWaveEnd: (wave) => {
+        this.buffText.setText(`Wave ${wave} Complete!`).setColor("#35ff74");
+        this.wavePause = true;
+        this.time.delayedCall(1800, () => {
+          this.buffText.setText("");
+          this.showShopAfterWave();
+        });
+      }
+    });
+    this.waveManager.startWave(1);
   }
 
   update(_t: number, dt: number) {
     if (this.isGameOver) return;
+    if (!this.wavePause) this.waveManager.update(dt);
     this.lastShot += dt;
     this.player.update(this.cursors, this.input.activePointer, this.wasd);
-    // Update player name position
     this.playerNameText.setPosition(this.player.x, this.player.y - 40);
-
-    this.lastEnemy += dt;
-    if (this.lastEnemy > 1000) {
-      this.spawnEnemy();
-      this.lastEnemy = 0;
-    }
-
+    // Only update HUD for score, health, wave
+    this.scoreText.setText(`Score: ${this.score}`);
+    this.healthText.setText(`Health: ${this.health}`);
+    this.waveText.setText(`Wave: ${this.waveManager.getCurrentWave()}`);
     this.lastPower += dt;
     if (this.lastPower > 10000) {
       this.spawnPowerUp();
       this.lastPower = 0;
     }
-
     this.enemies.children.iterate(o => { (o as Enemy).pursue(this.player); return true; });
-  }
-
-  /** ---------- Spawning ---------- */
-  spawnEnemy() {
-    const m = 40, w = this.scale.width, h = this.scale.height;
-    const p = [
-      { x: Phaser.Math.Between(0, w), y: -m },
-      { x: w + m, y: Phaser.Math.Between(0, h) },
-      { x: Phaser.Math.Between(0, w), y: h + m },
-      { x: -m, y: Phaser.Math.Between(0, h) }
-    ][Phaser.Math.Between(0, 3)];
-    // Only spawn normal or fast enemies
-    const types = [Enemy, FastEnemy, ShooterEnemy];
-    const EnemyClass = Phaser.Utils.Array.GetRandom(types);
-    this.enemies.add(new EnemyClass(this, p.x, p.y));
-  }
-
-  spawnPowerUp() {
-    const types: PowerType[] = ["trip", "speed", "shield", "heal"];
-    const ptype = Phaser.Utils.Array.GetRandom(types);
-    const x = Phaser.Math.Between(50, this.scale.width - 50);
-    const y = Phaser.Math.Between(50, this.scale.height - 50);
-    this.powerUps.add(new PowerUp(this, x, y, ptype));
   }
 
   /** ---------- Shooting ---------- */
@@ -201,6 +231,8 @@ export default class GameScene extends Phaser.Scene {
     enemy.destroy();
     this.score += 10;
     this.scoreText.setText(`Score: ${this.score}`);
+    this.enemiesLeftStatic = Math.max(0, this.enemiesLeftStatic - 1);
+    this.enemiesLeftText.setText(`Enemies Left: ${this.enemiesLeftStatic}`);
   }
 
   collectPowerUp(power: PowerUp) {
@@ -258,5 +290,24 @@ export default class GameScene extends Phaser.Scene {
     this.player.setActive(false).setVisible(false);
     this.playerNameText.setVisible(false);
     this.time.delayedCall(500, () => this.scene.start("GameOver", { score: this.score, playerName: this.playerName }));
+  }
+
+  showShopAfterWave() {
+    this.scene.pause();
+    this.scene.launch("Shop", {
+      score: this.score,
+      onClose: () => {
+        // Start next wave after shop closes
+        this.waveManager.startWave(this.waveManager.getCurrentWave() + 1);
+      }
+    });
+  }
+
+  spawnPowerUp() {
+    const types: PowerType[] = ["trip", "speed", "shield", "heal"];
+    const ptype = Phaser.Utils.Array.GetRandom(types);
+    const x = Phaser.Math.Between(50, this.scale.width - 50);
+    const y = Phaser.Math.Between(50, this.scale.height - 50);
+    this.powerUps.add(new PowerUp(this, x, y, ptype));
   }
 }
