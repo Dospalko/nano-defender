@@ -156,14 +156,14 @@ export default class StartScene extends Phaser.Scene {
 
   createTitlePanel(centerX: number, centerY: number) {
     // Main panel shadow
-    const panelShadow = this.add.rectangle(centerX + 6, centerY - 40 + 6, 700, 500, 0x000000, 0.4)
+    const panelShadow = this.add.rectangle(centerX + 6, centerY - 40 + 6, 700, 620, 0x000000, 0.4)
 
     // Main panel
-    const panel = this.add.rectangle(centerX, centerY - 40, 700, 500, 0x0f0f23, 0.85)
+    const panel = this.add.rectangle(centerX, centerY - 40, 700, 620, 0x0f0f23, 0.85)
     panel.setStrokeStyle(4, 0x00ff88, 1)
 
     // Inner glow
-    const innerGlow = this.add.rectangle(centerX, centerY - 40, 680, 480, 0x001122, 0.2)
+    const innerGlow = this.add.rectangle(centerX, centerY - 40, 680, 600, 0x001122, 0.2)
     innerGlow.setStrokeStyle(2, 0x00ff88, 0.3)
 
     // Animated border pulse
