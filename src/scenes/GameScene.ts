@@ -4,6 +4,10 @@ import Bullet from "@/objects/Bullet"
 import Enemy from "@/objects/Enemy"
 import PowerUp, { type PowerType } from "@/objects/PowerUp"
 import WaveManager from "@/objects/WaveManager"
+import { createAnimatedBackground } from "./game/Background"
+import { createEnhancedHUD } from "./game/HUD"
+import { createScreenEffects } from "./game/ScreenEffects"
+import { createParticleSystems } from "./game/Particles"
 
 export default class GameScene extends Phaser.Scene {
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys
@@ -87,11 +91,13 @@ export default class GameScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale
 
-    // Create animated background
-    this.createAnimatedBackground()
+    // Modular: Animated background
+    createAnimatedBackground(this, this.stars, this.gridLines, this.scanLines)
 
-    // Create screen effects
-    this.createScreenEffects()
+    // Modular: Screen effects
+    const effects = createScreenEffects(this)
+    this.screenFlash = effects.screenFlash
+    this.damageOverlay = effects.damageOverlay
 
     // Input setup
     this.cursors = this.input.keyboard!.createCursorKeys()
@@ -109,215 +115,26 @@ export default class GameScene extends Phaser.Scene {
     this.powerUps = this.physics.add.group({ classType: PowerUp, runChildUpdate: true })
     this.enemyBullets = this.physics.add.group({ classType: Bullet, runChildUpdate: true, maxSize: 60 })
 
-    // Enhanced particle systems
-    this.createParticleSystems()
+    // Modular: Particle systems
+    const particles = createParticleSystems(this)
+    this.particles = particles.particles
+    this.explosionParticles = particles.explosionParticles
+    this.powerUpParticles = particles.powerUpParticles
 
-    // Enhanced HUD
-    this.createEnhancedHUD()
-
-    // Input handlers
-    this.input.on("pointerdown", () => this.shoot())
-
-    // Collision detection
-    this.setupCollisions()
-
-    // Wave manager
-    this.setupWaveManager()
-
-    // Start first wave
-    this.waveManager.startWave(1)
-  }
-
-  createAnimatedBackground() {
-    // Create starfield
-    for (let i = 0; i < 100; i++) {
-      const star = this.add.circle(
-        Math.random() * this.scale.width,
-        Math.random() * this.scale.height,
-        Math.random() * 2 + 0.5,
-        0xffffff,
-        Math.random() * 0.8 + 0.2,
-      )
-      this.stars.push(star)
-
-      // Twinkling effect
-      this.tweens.add({
-        targets: star,
-        alpha: { from: 0.2, to: 1 },
-        duration: 1000 + Math.random() * 2000,
-        yoyo: true,
-        repeat: -1,
-        ease: "Sine.easeInOut",
-      })
-    }
-
-    // Create grid lines
-    const gridSize = 80
-    for (let x = 0; x < this.scale.width; x += gridSize) {
-      const line = this.add.rectangle(x, this.scale.height / 2, 1, this.scale.height, 0x00ff88, 0.1)
-      this.gridLines.push(line)
-    }
-    for (let y = 0; y < this.scale.height; y += gridSize) {
-      const line = this.add.rectangle(this.scale.width / 2, y, this.scale.width, 1, 0x00ff88, 0.1)
-      this.gridLines.push(line)
-    }
-
-    // Animate grid
-    this.tweens.add({
-      targets: this.gridLines,
-      alpha: { from: 0.05, to: 0.15 },
-      duration: 3000,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    })
-
-    // Create scanning lines
-    for (let i = 0; i < 2; i++) {
-      const scanLine = this.add.rectangle(this.scale.width / 2, -5, this.scale.width, 3, 0x00ff88, 0.6)
-      this.scanLines.push(scanLine)
-
-      this.tweens.add({
-        targets: scanLine,
-        y: this.scale.height + 5,
-        duration: 6000,
-        repeat: -1,
-        ease: "Linear",
-        delay: i * 3000,
-      })
-    }
-  }
-
-  createScreenEffects() {
-    // Screen flash for various effects
-    this.screenFlash = this.add
-      .rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0xffffff, 0)
-      .setDepth(100)
-
-    // Damage overlay
-    this.damageOverlay = this.add
-      .rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0xff0000, 0)
-      .setDepth(99)
-  }
-
-  createParticleSystems() {
-    // Main particle system for hits
-    this.particles = this.add.particles(0, 0, "particle", {
-      speed: { min: 50, max: 150 },
-      angle: { min: 0, max: 360 },
-      lifespan: 400,
-      scale: { start: 1.2, end: 0 },
-      blendMode: "ADD",
-      quantity: 0,
-      tint: 0x00ff88,
-    })
-
-    // Explosion particles
-    this.explosionParticles = this.add.particles(0, 0, "particle", {
-      speed: { min: 100, max: 300 },
-      angle: { min: 0, max: 360 },
-      lifespan: 600,
-      scale: { start: 1.5, end: 0 },
-      blendMode: "ADD",
-      quantity: 0,
-      tint: 0xff6b6b,
-    })
-
-    // Power-up particles
-    this.powerUpParticles = this.add.particles(0, 0, "particle", {
-      speed: { min: 30, max: 80 },
-      angle: { min: 0, max: 360 },
-      lifespan: 800,
-      scale: { start: 0.8, end: 0 },
-      blendMode: "ADD",
-      quantity: 0,
-      tint: 0xffa502,
-    })
-  }
-
-  createEnhancedHUD() {
-    const hudFont = {
-      fontSize: "20px",
-      color: "#ffffff",
-      fontFamily: "Arial Black, Arial, sans-serif",
-      stroke: "#000000",
-      strokeThickness: 3,
-      shadow: {
-        offsetX: 2,
-        offsetY: 2,
-        color: "#000000",
-        blur: 4,
-        fill: true,
-      },
-    }
-
-    // Score panel
-    this.scoreBg = this.add.rectangle(120, 30, 200, 40, 0x1a1a2e, 0.9).setDepth(9)
-    this.scoreBg.setStrokeStyle(2, 0x00ff88, 1)
-    this.scoreText = this.add.text(120, 30, "SCORE: 0", hudFont).setOrigin(0.5).setDepth(10)
-
-    // Health panel with bar
-    this.healthBg = this.add.rectangle(this.scale.width - 120, 30, 200, 40, 0x1a1a2e, 0.9).setDepth(9)
-    this.healthBg.setStrokeStyle(2, 0xff4757, 1)
-    this.healthText = this.add
-      .text(this.scale.width - 120, 30, `HEALTH: ${this.health}`, hudFont)
-      .setOrigin(0.5)
-      .setDepth(10)
-
-    // Health bar
-    this.healthBarBg = this.add.rectangle(this.scale.width - 120, 55, 160, 8, 0x333333, 0.8).setDepth(9)
-    this.healthBar = this.add.rectangle(this.scale.width - 120, 55, 160, 8, 0x00ff88, 1).setDepth(10)
-
-    // Wave panel
-    this.waveBg = this.add.rectangle(this.scale.width / 2, 30, 150, 40, 0x1a1a2e, 0.9).setDepth(9)
-    this.waveBg.setStrokeStyle(2, 0x3742fa, 1)
-    this.waveText = this.add
-      .text(this.scale.width / 2, 30, "WAVE: 1", hudFont)
-      .setOrigin(0.5)
-      .setDepth(10)
-
-    // Enemies left panel
-    this.enemiesLeftBg = this.add.rectangle(this.scale.width / 2, 70, 180, 35, 0x1a1a2e, 0.8).setDepth(9)
-    this.enemiesLeftBg.setStrokeStyle(2, 0xffa502, 1)
-    this.enemiesLeftText = this.add
-      .text(this.scale.width / 2, 70, "ENEMIES: 0", {
-        ...hudFont,
-        fontSize: "16px",
-        color: "#ffa502",
-      })
-      .setOrigin(0.5)
-      .setDepth(10)
-
-    // Buff text with background
-    this.buffText = this.add
-      .text(this.scale.width / 2, 120, "", {
-        fontSize: "28px",
-        color: "#00ff88",
-        fontFamily: "Arial Black, Arial, sans-serif",
-        stroke: "#000000",
-        strokeThickness: 4,
-        shadow: {
-          offsetX: 0,
-          offsetY: 0,
-          color: "#00ff88",
-          blur: 10,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setDepth(11)
-
-    // Combo text
-    this.comboText = this.add
-      .text(this.scale.width - 50, 100, "", {
-        fontSize: "24px",
-        color: "#ffa502",
-        fontFamily: "Arial Black, Arial, sans-serif",
-        stroke: "#000000",
-        strokeThickness: 3,
-      })
-      .setOrigin(1, 0.5)
-      .setDepth(11)
+    // Modular: HUD
+    const hud = createEnhancedHUD(this)
+    this.scoreBg = hud.scoreBg
+    this.scoreText = hud.scoreText
+    this.healthBg = hud.healthBg
+    this.healthText = hud.healthText
+    this.healthBarBg = hud.healthBarBg
+    this.healthBar = hud.healthBar
+    this.waveBg = hud.waveBg
+    this.waveText = hud.waveText
+    this.enemiesLeftBg = hud.enemiesLeftBg
+    this.enemiesLeftText = hud.enemiesLeftText
+    this.buffText = hud.buffText
+    this.comboText = hud.comboText
 
     // Player name with enhanced styling
     this.playerNameText = this.add
@@ -338,16 +155,20 @@ export default class GameScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(10)
 
-    // Add pulsing effects to HUD elements
-    this.tweens.add({
-      targets: [this.scoreBg, this.healthBg, this.waveBg, this.enemiesLeftBg],
-      alpha: { from: 0.9, to: 0.7 },
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    })
+    // Input handlers
+    this.input.on("pointerdown", () => this.shoot())
+
+    // Collision detection
+    this.setupCollisions()
+
+    // Wave manager
+    this.setupWaveManager()
+
+    // Start first wave
+    this.waveManager.startWave(1)
   }
+
+  // ...existing code...
 
   setupCollisions() {
     this.physics.add.overlap(this.bullets, this.enemies, (b, e) => this.hitEnemy(b as Bullet, e as Enemy))
