@@ -245,7 +245,7 @@ export default class StartScene extends Phaser.Scene {
 
   createSubtitle(centerX: number, centerY: number) {
     const subtitle = this.add
-      .text(centerX, centerY - 100, "ARCADE SPACE SHOOTER", {
+      .text(centerX, centerY, "ARCADE SPACE SHOOTER", {
         fontSize: "24px",
         color: "#ffffff",
         fontFamily: "Arial, sans-serif",
@@ -266,28 +266,7 @@ export default class StartScene extends Phaser.Scene {
   }
 
   createNameInput(centerX: number, centerY: number) {
-    // Name prompt with glow
-    const promptBg = this.add.rectangle(centerX, centerY - 20, 300, 40, 0x1a1a2e, 0.8)
-    promptBg.setStrokeStyle(2, 0x00ff88, 0.6)
-
-    const prompt = this.add
-      .text(centerX, centerY - 20, "ENTER PILOT NAME", {
-        fontSize: "20px",
-        color: "#00ff88",
-        fontFamily: "Arial Black, Arial, sans-serif",
-        stroke: "#000000",
-        strokeThickness: 2,
-      })
-      .setOrigin(0.5)
-      .setAlpha(0)
-
-    this.tweens.add({
-      targets: [promptBg, prompt],
-      alpha: { from: 0, to: 1 },
-      duration: 1000,
-      ease: "Quad.easeOut",
-      delay: 1000,
-    })
+    // Only the input, no prompt or background
 
     // Enhanced HTML input styling
     this.nameInput = document.createElement("input")
@@ -296,7 +275,7 @@ export default class StartScene extends Phaser.Scene {
     this.nameInput.maxLength = 15
     this.nameInput.style.position = "absolute"
     this.nameInput.style.left = `calc(50% - 120px)`
-    this.nameInput.style.top = `${centerY + 30}px`
+    this.nameInput.style.top = `${centerY - 80}px` // move input a bit further down
     this.nameInput.style.width = "240px"
     this.nameInput.style.height = "50px"
     this.nameInput.style.fontSize = "20px"
@@ -304,7 +283,7 @@ export default class StartScene extends Phaser.Scene {
     this.nameInput.style.fontWeight = "bold"
     this.nameInput.style.borderRadius = "8px"
     this.nameInput.style.border = "3px solid #00ff88"
-    this.nameInput.style.padding = "12px"
+    this.nameInput.style.padding = "0 16px"
     this.nameInput.style.background = "linear-gradient(145deg, #1a1a2e, #16213e)"
     this.nameInput.style.color = "#ffffff"
     this.nameInput.style.textAlign = "center"
@@ -314,6 +293,7 @@ export default class StartScene extends Phaser.Scene {
     this.nameInput.style.outline = "none"
     this.nameInput.style.zIndex = "1000"
     this.nameInput.style.transition = "all 0.3s ease"
+    this.nameInput.style.margin = "0"
 
     // Enhanced input focus effects
     this.nameInput.addEventListener("focus", () => {
@@ -350,12 +330,12 @@ export default class StartScene extends Phaser.Scene {
 
   createStartButton(centerX: number, centerY: number) {
     // Button background with glow
-    this.startBtnBg = this.add.rectangle(centerX, centerY + 120, 250, 70, 0x00ff88, 0.3)
+    this.startBtnBg = this.add.rectangle(centerX, centerY + 60, 250, 70, 0x00ff88, 0.3)
     this.startBtnBg.setStrokeStyle(4, 0x00ff88, 1)
 
     // Button text
     this.startBtn = this.add
-      .text(centerX, centerY + 120, "LAUNCH MISSION", {
+      .text(centerX, centerY + 60, "LAUNCH MISSION", {
         fontSize: "24px",
         color: "#ffffff",
         fontFamily: "Arial Black, Arial, sans-serif",
@@ -380,16 +360,16 @@ export default class StartScene extends Phaser.Scene {
 
   createControlsButton(centerX: number, centerY: number) {
     // Controls button background
-    const controlsBtnBg = this.add.rectangle(centerX, centerY + 210, 200, 50, 0x3742fa, 0.8)
+    const controlsBtnBg = this.add.rectangle(centerX, centerY + 140, 200, 50, 0x3742fa, 0.8)
     controlsBtnBg.setStrokeStyle(3, 0x3742fa, 1)
 
     const controlsBtn = this.add
-      .text(centerX, centerY + 210, "VIEW CONTROLS", {
-        fontSize: "18px",
+      .text(centerX, centerY + 140, "VIEW CONTROLS", {
+        fontSize: "24px",
         color: "#ffffff",
         fontFamily: "Arial Black, Arial, sans-serif",
         stroke: "#000000",
-        strokeThickness: 2,
+        strokeThickness: 3,
       })
       .setOrigin(0.5)
 
@@ -427,7 +407,7 @@ export default class StartScene extends Phaser.Scene {
     this.tweens.add({
       targets: [controlsBtnBg, controlsBtn],
       alpha: { from: 0, to: 1 },
-      y: { from: centerY + 250, to: centerY + 210 },
+      y: { from: centerY + 180, to: centerY + 140 },
       duration: 1000,
       ease: "Back.easeOut",
       delay: 2000,
