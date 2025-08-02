@@ -275,7 +275,7 @@ export default class StartScene extends Phaser.Scene {
     this.nameInput.maxLength = 15
     this.nameInput.style.position = "absolute"
     this.nameInput.style.left = `calc(50% - 120px)`
-    this.nameInput.style.top = `${centerY - 80}px` // move input a bit further down
+    this.nameInput.style.top = `${centerY - 60}px` // move input a bit further down
     this.nameInput.style.width = "240px"
     this.nameInput.style.height = "50px"
     this.nameInput.style.fontSize = "20px"
@@ -339,7 +339,7 @@ export default class StartScene extends Phaser.Scene {
         fontSize: "24px",
         color: "#ffffff",
         fontFamily: "Arial Black, Arial, sans-serif",
-        stroke: "#000000",
+        stroke: "#ffffffff",
         strokeThickness: 3,
       })
       .setOrigin(0.5)
@@ -360,8 +360,8 @@ export default class StartScene extends Phaser.Scene {
 
   createControlsButton(centerX: number, centerY: number) {
     // Controls button background
-    const controlsBtnBg = this.add.rectangle(centerX, centerY + 140, 200, 50, 0x3742fa, 0.8)
-    controlsBtnBg.setStrokeStyle(3, 0x3742fa, 1)
+    const controlsBtnBg = this.add.rectangle(centerX, centerY + 140, 250, 70, 0x3742fa, 0.8)
+    controlsBtnBg.setStrokeStyle(4, 0x3742fa, 1)
 
     const controlsBtn = this.add
       .text(centerX, centerY + 140, "VIEW CONTROLS", {
