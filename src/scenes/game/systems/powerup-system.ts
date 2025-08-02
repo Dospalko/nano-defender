@@ -1,5 +1,6 @@
 import Phaser from "phaser"
 import PowerUp from "@/objects/PowerUp" // Declare PowerUp variable
+import Player from "@/objects/Player"
 import type { PowerType } from "@/objects/PowerUp"
 import { VisualEffects } from "../effects/visual-effects"
 import { ParticleSystem } from "../effects/particle-system"
@@ -35,7 +36,7 @@ export class PowerUpSystem {
     this.onHealthUpdate = callbacks.onHealthUpdate
   }
 
-  handlePowerUpCollection(player: PowerUp, powerUp: PowerUp, currentHealth: number, maxHealth: number): number {
+  handlePowerUpCollection(player: Player, powerUp: PowerUp, currentHealth: number, maxHealth: number): number {
     // Enhanced collection effect
     this.particleSystem.explodePowerUp(powerUp.x, powerUp.y)
     this.visualEffects.createPowerUpCollectionEffect(powerUp.x, powerUp.y)
@@ -70,7 +71,7 @@ export class PowerUpSystem {
     })
   }
 
-  private activateSpeedBoost(player: PowerUp) {
+  private activateSpeedBoost(player: Player) {
     if (!this.speedBoost) {
       this.speedBoost = true
       ;(player as any).speed *= 1.5
@@ -81,7 +82,7 @@ export class PowerUpSystem {
     })
   }
 
-  private activateShield(player: PowerUp) {
+  private activateShield(player: Player) {
     this.shield = true
     this.onBuffUpdate("SHIELD ACTIVATED!", COLORS.SHIELD, GAME_CONFIG.POWERUPS.SHIELD_DURATION, () => {
       this.shield = false
@@ -90,7 +91,7 @@ export class PowerUpSystem {
     this.visualEffects.createShieldActivationEffect(player.x, player.y)
   }
 
-  private activateHeal(currentHealth: number, maxHealth: number, player: PowerUp): number {
+  private activateHeal(currentHealth: number, maxHealth: number, player: Player): number {
     let newHealth = currentHealth
     if (currentHealth < maxHealth) {
       newHealth = currentHealth + 1
