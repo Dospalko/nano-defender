@@ -1,4 +1,7 @@
+
 import Phaser from "phaser"
+import { createStartButton } from "../ui/StartButton"
+import { createControlsButton } from "../ui/ControlsButton"
 
 export default class StartScene extends Phaser.Scene {
   playerName = ""
@@ -39,10 +42,16 @@ export default class StartScene extends Phaser.Scene {
     this.createNameInput(centerX, centerY)
 
     // Create start button
-    this.createStartButton(centerX, centerY)
+    // Create start button using UI component
+    const { startBtn, startBtnBg } = createStartButton(this, centerX, centerY, () => this.startGame())
+    this.startBtn = startBtn
+    this.startBtnBg = startBtnBg
 
-    // Create controls button
-    this.createControlsButton(centerX, centerY)
+    // Create controls button using UI component
+    createControlsButton(this, centerX, centerY, () => {
+      if (this.nameInput) this.nameInput.remove()
+      this.scene.start("Controls")
+    })
 
     // Add floating particles
     this.createFloatingParticles()
@@ -328,101 +337,7 @@ export default class StartScene extends Phaser.Scene {
     })
   }
 
-  createStartButton(centerX: number, centerY: number) {
-    // Button background with glow
-    this.startBtnBg = this.add.rectangle(centerX, centerY + 60, 250, 70, 0x00ff88, 0.3)
-    this.startBtnBg.setStrokeStyle(4, 0x00ff88, 1)
-
-    // Button text
-    this.startBtn = this.add
-      .text(centerX, centerY + 60, "LAUNCH MISSION", {
-        fontSize: "24px",
-        color: "#ffffff",
-        fontFamily: "Arial Black, Arial, sans-serif",
-        stroke: "#ffffffff",
-        strokeThickness: 3,
-      })
-      .setOrigin(0.5)
-
-    // Initially disabled state
-    this.disableStartButton()
-
-    // Button animations
-    this.tweens.add({
-      targets: [this.startBtnBg, this.startBtn],
-      alpha: { from: 0, to: 1 },
-      scale: { from: 0.8, to: 1 },
-      duration: 1200,
-      ease: "Back.easeOut",
-      delay: 1500,
-    })
-  }
-
-  createControlsButton(centerX: number, centerY: number) {
-    // Controls button background
-    const controlsBtnBg = this.add.rectangle(centerX, centerY + 140, 250, 70, 0x3742fa, 0.8)
-    controlsBtnBg.setStrokeStyle(4, 0x3742fa, 1)
-
-    const controlsBtn = this.add
-      .text(centerX, centerY + 140, "VIEW CONTROLS", {
-        fontSize: "24px",
-        color: "#ffffff",
-        fontFamily: "Arial Black, Arial, sans-serif",
-        stroke: "#000000",
-        strokeThickness: 3,
-      })
-      .setOrigin(0.5)
-
-    // Make interactive
-    ;[controlsBtnBg, controlsBtn].forEach((target) => {
-      target.setInteractive({ useHandCursor: true })
-
-      target.on("pointerover", () => {
-        this.tweens.add({
-          targets: [controlsBtnBg, controlsBtn],
-          scale: 1.1,
-          duration: 200,
-          ease: "Back.easeOut",
-        })
-        controlsBtnBg.setFillStyle(0x4c63d2)
-      })
-
-      target.on("pointerout", () => {
-        this.tweens.add({
-          targets: [controlsBtnBg, controlsBtn],
-          scale: 1,
-          duration: 200,
-          ease: "Quad.easeOut",
-        })
-        controlsBtnBg.setFillStyle(0x3742fa)
-      })
-
-      target.on("pointerdown", () => {
-        if (this.nameInput) this.nameInput.remove()
-        this.scene.start("Controls")
-      })
-    })
-
-    // Entrance animation
-    this.tweens.add({
-      targets: [controlsBtnBg, controlsBtn],
-      alpha: { from: 0, to: 1 },
-      y: { from: centerY + 180, to: centerY + 140 },
-      duration: 1000,
-      ease: "Back.easeOut",
-      delay: 2000,
-    })
-
-    // Subtle pulse
-    this.tweens.add({
-      targets: controlsBtnBg,
-      alpha: { from: 0.8, to: 0.6 },
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
-    })
-  }
+  // ...existing code...
 
   createFloatingParticles() {
     for (let i = 0; i < 30; i++) {
