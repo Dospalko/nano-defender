@@ -16,6 +16,13 @@ export default class StartScene extends Phaser.Scene {
     const centerX = this.scale.width / 2
     const centerY = this.scale.height / 2
 
+    // Hide loading screen if present
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+      loadingScreen.classList.add('hidden');
+      setTimeout(() => { loadingScreen.style.display = 'none'; }, 500);
+    }
+
     // Create animated space background
     this.createAnimatedBackground()
 
@@ -567,7 +574,7 @@ export default class StartScene extends Phaser.Scene {
 
   createLaunchEffect() {
     const centerX = this.scale.width / 2
-    const centerY = this.scale.height / 2
+      const centerY = this.scale.height / 2
 
     // Screen flash
     const flash = this.add.rectangle(centerX, centerY, this.scale.width, this.scale.height, 0xffffff, 0)

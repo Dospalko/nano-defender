@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Nano Defender - Space Shooter Game</title>
+  <title>Nano Defender - Arcade Space Shooter</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Nano Defender - An exciting space shooter game built with Phaser 3" />
+  <meta name="description" content="Nano Defender - An exciting arcade space shooter game built with Phaser 3" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -19,9 +19,67 @@
       margin: 0;
       height: 100vh;
       overflow: hidden;
-      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+      background: #0a0a1a;
       font-family: 'Orbitron', monospace;
       user-select: none;
+      cursor: none;
+    }
+    
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 204, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(255, 107, 107, 0.05) 0%, transparent 50%),
+        linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+      animation: backgroundShift 20s ease-in-out infinite;
+      z-index: -2;
+    }
+    
+    /* Animated grid overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: gridMove 10s linear infinite;
+      z-index: -1;
+    }
+    
+    @keyframes backgroundShift {
+      0%, 100% { 
+        filter: hue-rotate(0deg) brightness(1);
+      }
+      25% { 
+        filter: hue-rotate(10deg) brightness(1.1);
+      }
+      50% { 
+        filter: hue-rotate(-5deg) brightness(0.9);
+      }
+      75% { 
+        filter: hue-rotate(15deg) brightness(1.05);
+      }
+    }
+    
+    @keyframes gridMove {
+      0% { 
+        transform: translate(0, 0);
+      }
+      100% { 
+        transform: translate(50px, 50px);
+      }
     }
     
     #game {
@@ -31,71 +89,498 @@
       justify-content: center;
       align-items: center;
       position: relative;
+      overflow: hidden;
     }
     
+    /* Floating particles */
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #00ff88;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: float 8s linear infinite;
+      opacity: 0.6;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) translateX(0) scale(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.6;
+        transform: scale(1);
+      }
+      90% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-100px) translateX(100px) scale(0);
+        opacity: 0;
+      }
+    }
+    
+    /* Enhanced canvas styling */
     canvas {
       display: block;
-      border: 2px solid #35ff74;
-      border-radius: 8px;
+      border: 3px solid #00ff88;
+      border-radius: 12px;
       box-shadow: 
-        0 0 20px rgba(53, 255, 116, 0.3),
-        0 0 40px rgba(53, 255, 116, 0.1),
-        inset 0 0 20px rgba(0, 0, 0, 0.2);
+        0 0 30px rgba(0, 255, 136, 0.4),
+        0 0 60px rgba(0, 255, 136, 0.2),
+        0 0 100px rgba(0, 255, 136, 0.1),
+        inset 0 0 30px rgba(0, 0, 0, 0.3);
       max-width: 100%;
       max-height: 100%;
+      position: relative;
+      animation: canvasGlow 3s ease-in-out infinite alternate;
     }
     
-    /* Loading animation */
-    .loading {
+    @keyframes canvasGlow {
+      0% {
+        box-shadow: 
+          0 0 30px rgba(0, 255, 136, 0.4),
+          0 0 60px rgba(0, 255, 136, 0.2),
+          0 0 100px rgba(0, 255, 136, 0.1),
+          inset 0 0 30px rgba(0, 0, 0, 0.3);
+      }
+      100% {
+        box-shadow: 
+          0 0 40px rgba(0, 255, 136, 0.6),
+          0 0 80px rgba(0, 255, 136, 0.3),
+          0 0 120px rgba(0, 255, 136, 0.15),
+          inset 0 0 30px rgba(0, 0, 0, 0.3);
+      }
+    }
+    
+    /* Loading screen */
+    .loading-container {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #35ff74;
-      font-size: 24px;
-      font-weight: 700;
-      text-shadow: 0 0 10px rgba(53, 255, 116, 0.5);
-      animation: pulse 2s infinite;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(10, 10, 26, 0.95);
+      z-index: 1000;
+      transition: opacity 0.5s ease-out;
     }
     
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
+    .loading-title {
+      font-size: 48px;
+      font-weight: 900;
+      color: #00ff88;
+      text-shadow: 
+        0 0 20px rgba(0, 255, 136, 0.8),
+        0 0 40px rgba(0, 255, 136, 0.4);
+      margin-bottom: 30px;
+      animation: titlePulse 2s ease-in-out infinite;
+      letter-spacing: 4px;
     }
     
-    /* Style for name input when it appears */
+    .loading-subtitle {
+      font-size: 18px;
+      font-weight: 400;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      margin-bottom: 40px;
+      opacity: 0.8;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 2px;
+    }
+    
+    @keyframes titlePulse {
+      0%, 100% { 
+        transform: scale(1);
+        text-shadow: 
+          0 0 20px rgba(0, 255, 136, 0.8),
+          0 0 40px rgba(0, 255, 136, 0.4);
+      }
+      50% { 
+        transform: scale(1.05);
+        text-shadow: 
+          0 0 30px rgba(0, 255, 136, 1),
+          0 0 60px rgba(0, 255, 136, 0.6),
+          0 0 90px rgba(0, 255, 136, 0.3);
+      }
+    }
+    
+    /* Loading progress bar */
+    .loading-progress {
+      width: 400px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+    
+    .loading-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #00ff88, #00ccff, #00ff88);
+      background-size: 200% 100%;
+      width: 0%;
+      animation: loadingProgress 3s ease-out forwards, shimmer 2s linear infinite;
+      border-radius: 3px;
+    }
+    
+    @keyframes loadingProgress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    
+    .loading-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: #00ff88;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+      animation: loadingDots 1.5s infinite;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 1px;
+    }
+    
+    @keyframes loadingDots {
+      0%, 20% { content: 'INITIALIZING SYSTEMS'; }
+      25%, 45% { content: 'LOADING ASSETS'; }
+      50%, 70% { content: 'CALIBRATING WEAPONS'; }
+      75%, 95% { content: 'READY FOR LAUNCH'; }
+    }
+    
+    /* Scanning lines effect */
+    .scan-line {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #00ff88, transparent);
+      animation: scan 4s linear infinite;
+      opacity: 0.6;
+    }
+    
+    .scan-line:nth-child(1) { animation-delay: 0s; }
+    .scan-line:nth-child(2) { animation-delay: 1.5s; }
+    .scan-line:nth-child(3) { animation-delay: 3s; }
+    
+    @keyframes scan {
+      0% { 
+        top: -2px;
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.6;
+      }
+      90% {
+        opacity: 0.6;
+      }
+      100% { 
+        top: 100%;
+        opacity: 0;
+      }
+    }
+    
+    /* Enhanced input styling */
     input[type="text"] {
       font-family: 'Orbitron', monospace !important;
       outline: none;
       transition: all 0.3s ease;
+      background: linear-gradient(145deg, #1a1a2e, #16213e) !important;
+      border: 3px solid #00ff88 !important;
+      color: #ffffff !important;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.3) !important;
     }
     
     input[type="text"]:focus {
-      box-shadow: 0 0 15px rgba(53, 255, 116, 0.6) !important;
+      box-shadow: 
+        0 0 20px rgba(0, 255, 136, 0.6),
+        0 0 40px rgba(0, 255, 136, 0.3),
+        inset 0 0 20px rgba(0, 255, 136, 0.1) !important;
       transform: scale(1.05);
+      border-color: #00ccff !important;
+    }
+    
+    input[type="text"]:hover {
+      border-color: #00ccff !important;
+      box-shadow: 0 0 15px rgba(0, 204, 255, 0.4) !important;
+    }
+    
+    /* Corner decorations */
+    .corner-decoration {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border: 2px solid #00ff88;
+      pointer-events: none;
+    }
+    
+    .corner-decoration.top-left {
+      top: 20px;
+      left: 20px;
+      border-right: none;
+      border-bottom: none;
+      animation: cornerGlow 3s ease-in-out infinite alternate;
+    }
+    
+    .corner-decoration.top-right {
+      top: 20px;
+      right: 20px;
+      border-left: none;
+      border-bottom: none;
+      animation: cornerGlow 3s ease-in-out infinite alternate 0.5s;
+    }
+    
+    .corner-decoration.bottom-left {
+      bottom: 20px;
+      left: 20px;
+      border-right: none;
+      border-top: none;
+      animation: cornerGlow 3s ease-in-out infinite alternate 1s;
+    }
+    
+    .corner-decoration.bottom-right {
+      bottom: 20px;
+      right: 20px;
+      border-left: none;
+      border-top: none;
+      animation: cornerGlow 3s ease-in-out infinite alternate 1.5s;
+    }
+    
+    @keyframes cornerGlow {
+      0% {
+        border-color: #00ff88;
+        box-shadow: 0 0 5px rgba(0, 255, 136, 0.3);
+      }
+      100% {
+        border-color: #00ccff;
+        box-shadow: 0 0 15px rgba(0, 204, 255, 0.6);
+      }
     }
     
     /* Responsive design */
     @media (max-width: 768px) {
-      canvas {
-        border: 1px solid #35ff74;
-        border-radius: 4px;
+      .loading-title {
+        font-size: 32px;
+        margin-bottom: 20px;
       }
+      
+      .loading-subtitle {
+        font-size: 14px;
+        margin-bottom: 30px;
+      }
+      
+      .loading-progress {
+        width: 280px;
+      }
+      
+      canvas {
+        border: 2px solid #00ff88;
+        border-radius: 8px;
+      }
+      
+      .corner-decoration {
+        width: 30px;
+        height: 30px;
+      }
+      
+      .corner-decoration.top-left,
+      .corner-decoration.top-right {
+        top: 10px;
+      }
+      
+      .corner-decoration.bottom-left,
+      .corner-decoration.bottom-right {
+        bottom: 10px;
+      }
+      
+      .corner-decoration.top-left,
+      .corner-decoration.bottom-left {
+        left: 10px;
+      }
+      
+      .corner-decoration.top-right,
+      .corner-decoration.bottom-right {
+        right: 10px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .loading-title {
+        font-size: 24px;
+        letter-spacing: 2px;
+      }
+      
+      .loading-progress {
+        width: 240px;
+        height: 4px;
+      }
+      
+      input[type="text"] {
+        font-size: 16px !important;
+      }
+    }
+    
+    /* Hide loading screen class */
+    .loading-container.hidden {
+      opacity: 0;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
   <div id="game">
-    <div class="loading">LOADING NANO DEFENDER...</div>
+    <!-- Corner decorations -->
+    <div class="corner-decoration top-left"></div>
+    <div class="corner-decoration top-right"></div>
+    <div class="corner-decoration bottom-left"></div>
+    <div class="corner-decoration bottom-right"></div>
+    
+    <!-- Scanning lines -->
+    <div class="scan-line"></div>
+    <div class="scan-line"></div>
+    <div class="scan-line"></div>
+    
+    <!-- Loading screen -->
+    <div class="loading-container" id="loadingScreen">
+      <div class="loading-title">NANO DEFENDER</div>
+      <div class="loading-subtitle">ARCADE SPACE SHOOTER</div>
+      <div class="loading-progress">
+        <div class="loading-bar"></div>
+      </div>
+      <div class="loading-text">INITIALIZING SYSTEMS...</div>
+    </div>
   </div>
-  <script type="module" src="/src/main.ts"></script>
+  
   <script>
-    // Remove loading text once game starts
-    window.addEventListener('load', () => {
+    // Create floating particles
+    function createParticles() {
+      const gameContainer = document.getElementById('game');
+      
+      for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 8 + 's';
+        particle.style.animationDuration = (8 + Math.random() * 4) + 's';
+        
+        // Random colors
+        const colors = ['#00ff88', '#00ccff', '#ff6b6b', '#ffa502'];
+        particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+        
+        gameContainer.appendChild(particle);
+        
+        // Remove and recreate particle after animation
+        setTimeout(() => {
+          if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+          }
+        }, 12000);
+      }
+    }
+    
+    // Loading sequence
+    function startLoadingSequence() {
+      const loadingText = document.querySelector('.loading-text');
+      const messages = [
+        'INITIALIZING SYSTEMS...',
+        'LOADING ASSETS...',
+        'CALIBRATING WEAPONS...',
+        'ESTABLISHING COMMUNICATION...',
+        'READY FOR LAUNCH!'
+      ];
+      
+      let messageIndex = 0;
+      const messageInterval = setInterval(() => {
+        if (messageIndex < messages.length) {
+          loadingText.textContent = messages[messageIndex];
+          messageIndex++;
+        } else {
+          clearInterval(messageInterval);
+        }
+      }, 600);
+    }
+    
+    // Hide loading screen
+    function hideLoadingScreen() {
+      const loadingScreen = document.getElementById('loadingScreen');
+      loadingScreen.classList.add('hidden');
       setTimeout(() => {
-        const loading = document.querySelector('.loading');
-        if (loading) loading.style.display = 'none';
-      }, 2000);
+        loadingScreen.style.display = 'none';
+        // Start Phaser game after loading animation is done
+        import('/src/main.ts');
+      }, 500);
+    }
+    
+    // Initialize
+    window.addEventListener('load', () => {
+      // Start particle system
+      createParticles();
+      setInterval(createParticles, 3000);
+      
+      // Start loading sequence
+      startLoadingSequence();
+      
+      // Hide loading screen after game loads
+      setTimeout(hideLoadingScreen, 3500);
+    });
+    
+    // Add custom cursor
+    document.addEventListener('mousemove', (e) => {
+      // Create cursor trail effect
+      const trail = document.createElement('div');
+      trail.style.position = 'absolute';
+      trail.style.left = e.clientX + 'px';
+      trail.style.top = e.clientY + 'px';
+      trail.style.width = '4px';
+      trail.style.height = '4px';
+      trail.style.background = '#00ff88';
+      trail.style.borderRadius = '50%';
+      trail.style.pointerEvents = 'none';
+      trail.style.zIndex = '9999';
+      trail.style.opacity = '0.6';
+      trail.style.transition = 'opacity 0.5s ease-out';
+      
+      document.body.appendChild(trail);
+      
+      setTimeout(() => {
+        trail.style.opacity = '0';
+        setTimeout(() => {
+          if (trail.parentNode) {
+            trail.parentNode.removeChild(trail);
+          }
+        }, 500);
+      }, 50);
+    });
+    
+    // Prevent context menu
+    document.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // F11 for fullscreen
+      if (e.key === 'F11') {
+        e.preventDefault();
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+      
+      // Escape to exit fullscreen
+      if (e.key === 'Escape' && document.fullscreenElement) {
+        document.exitFullscreen();
+      }
     });
   </script>
 </body>
