@@ -12,11 +12,7 @@ export default class BootScene extends Scene {
     this.load.image('bullet', 'bullet.png');
     const g = this.add.graphics();
 
-    // existujúce textúry
-    // g.fillStyle(0x00eaff).fillCircle(16,16,16); g.generateTexture("player",32,32); // REMOVE or COMMENT OUT this line
-    // g.clear().fillStyle(0xff2d75).fillCircle(20,20,20); g.generateTexture("enemy",40,40); // REMOVE or COMMENT OUT this line
-    // g.clear().fillStyle(0xffe200).fillCircle(8,8,8); g.generateTexture("bullet",16,16); // REMOVE or COMMENT OUT this line
-    g.clear().fillStyle(0xff0000).fillCircle(4,4,4); g.generateTexture("particle",8,8);
+     g.clear().fillStyle(0xff0000).fillCircle(4,4,4); g.generateTexture("particle",8,8);
 
     // power-up textúry
     g.clear().fillStyle(0x35ff74).fillCircle(12,12,12); g.generateTexture("power-trip",24,24);   // zelená
