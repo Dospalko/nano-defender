@@ -10,6 +10,7 @@ declare global {
   }
 }
 import Phaser from "phaser"
+import { GAME_CONFIG } from "./game/config/game-config";
 
 export type ShopItem = {
   name: string
@@ -279,6 +280,16 @@ export default class ShopScene extends Phaser.Scene {
       // Max Health +1 logic
       if (item.name === "Max Health +1") {
         window.maxHealthBonus = (window.maxHealthBonus || 0) + 1;
+        // Update GameScene HUD and health immediately
+        const gameScene = this.scene.get("Game") as import("./GameScene").default;
+        if (gameScene && gameScene.gameState && gameScene.hudSystem) {
+          gameScene.gameState.maxHealth = GAME_CONFIG.PLAYER.MAX_HEALTH + window.maxHealthBonus;
+          // If player is alive, also increase current health by 1 (up to maxHealth)
+          if (!gameScene.gameState.isGameOver) {
+            gameScene.gameState.health = Math.min(gameScene.gameState.health + 1, gameScene.gameState.maxHealth);
+          }
+          gameScene.hudSystem.updateHealth(gameScene.gameState.health, gameScene.gameState.maxHealth);
+        }
       }
 
       // Update score display
