@@ -22,7 +22,7 @@ const SHOP_ITEMS: ShopItem[] = [
   { name: "Triple Shot", description: "Shoot 3 bullets at once", price: 150, icon: "🔫" },
   { name: "Speed Boost", description: "Move faster permanently", price: 120, icon: "⚡" },
   { name: "Shield", description: "Start each wave with a shield", price: 200, icon: "🛡️" },
-  { name: "Max Health +1", description: "Increase max health by 1", price: 100, icon: "❤️" },
+  { name: "Max Health +1", description: "Increase max health by 1", price: 1, icon: "❤️" },
   { name: "Rapid Fire", description: "Reduce reload time to 600ms", price: 180, icon: "🔥" },
 ]
 

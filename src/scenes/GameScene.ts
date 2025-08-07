@@ -49,11 +49,11 @@ export default class GameScene extends Phaser.Scene {
   private powerUpSystem!: PowerUpSystem
   private visualEffects!: VisualEffects
   private particleSystem!: ParticleSystem
-  private hudSystem!: HUDSystem
-  private waveManager!: WaveManagerIntegration
+  public hudSystem!: HUDSystem
+  public waveManager!: WaveManagerIntegration
 
   // Game state
-  private gameState: GameState = {
+  public gameState: GameState = {
     score: 0,
     health: GAME_CONFIG.PLAYER.INITIAL_HEALTH,
     maxHealth: GAME_CONFIG.PLAYER.MAX_HEALTH,
@@ -99,10 +99,11 @@ export default class GameScene extends Phaser.Scene {
 
   private resetGameState() {
     const bonus = window.maxHealthBonus || 0;
+    const maxHealth = GAME_CONFIG.PLAYER.MAX_HEALTH + bonus;
     this.gameState = {
       score: 0,
-      health: GAME_CONFIG.PLAYER.INITIAL_HEALTH,
-      maxHealth: GAME_CONFIG.PLAYER.MAX_HEALTH + bonus,
+      health: Math.min(GAME_CONFIG.PLAYER.INITIAL_HEALTH, maxHealth),
+      maxHealth,
       isGameOver: false,
       wavePause: false,
       enemiesLeftStatic: 0,
@@ -279,7 +280,7 @@ export default class GameScene extends Phaser.Scene {
   private updateHealth(health: number) {
     const bonus = window.maxHealthBonus || 0;
     this.gameState.maxHealth = GAME_CONFIG.PLAYER.MAX_HEALTH + bonus;
-    this.gameState.health = health;
+    this.gameState.health = Math.min(health, this.gameState.maxHealth);
   }
 
   private handleEnemyDestroyed() {
