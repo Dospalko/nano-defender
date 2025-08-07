@@ -98,10 +98,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   private resetGameState() {
+    const bonus = window.maxHealthBonus || 0;
     this.gameState = {
       score: 0,
       health: GAME_CONFIG.PLAYER.INITIAL_HEALTH,
-      maxHealth: GAME_CONFIG.PLAYER.MAX_HEALTH,
+      maxHealth: GAME_CONFIG.PLAYER.MAX_HEALTH + bonus,
       isGameOver: false,
       wavePause: false,
       enemiesLeftStatic: 0,
@@ -276,7 +277,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   private updateHealth(health: number) {
-    this.gameState.health = health
+    const bonus = window.maxHealthBonus || 0;
+    this.gameState.maxHealth = GAME_CONFIG.PLAYER.MAX_HEALTH + bonus;
+    this.gameState.health = health;
   }
 
   private handleEnemyDestroyed() {

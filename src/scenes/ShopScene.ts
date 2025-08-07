@@ -1,6 +1,12 @@
 declare global {
   interface Window {
     rapidFire?: boolean;
+    maxHealthBonus?: number;
+  }
+}
+declare global {
+  interface Window {
+    rapidFire?: boolean;
   }
 }
 import Phaser from "phaser"
@@ -269,6 +275,10 @@ export default class ShopScene extends Phaser.Scene {
       // Rapid Fire logic
       if (item.name === "Rapid Fire") {
         window.rapidFire = true;
+      }
+      // Max Health +1 logic
+      if (item.name === "Max Health +1") {
+        window.maxHealthBonus = (window.maxHealthBonus || 0) + 1;
       }
 
       // Update score display
