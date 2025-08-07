@@ -1,3 +1,8 @@
+declare global {
+  interface Window {
+    rapidFire?: boolean;
+  }
+}
 import Phaser from "phaser"
 
 export type ShopItem = {
@@ -12,6 +17,7 @@ const SHOP_ITEMS: ShopItem[] = [
   { name: "Speed Boost", description: "Move faster permanently", price: 120, icon: "⚡" },
   { name: "Shield", description: "Start each wave with a shield", price: 200, icon: "🛡️" },
   { name: "Max Health +1", description: "Increase max health by 1", price: 100, icon: "❤️" },
+  { name: "Rapid Fire", description: "Reduce reload time to 600ms", price: 180, icon: "🔥" },
 ]
 
 export default class ShopScene extends Phaser.Scene {
@@ -259,6 +265,11 @@ export default class ShopScene extends Phaser.Scene {
     if (this.playerScore >= item.price) {
       this.playerScore -= item.price
       this.purchased.add(item.name)
+
+      // Rapid Fire logic
+      if (item.name === "Rapid Fire") {
+        window.rapidFire = true;
+      }
 
       // Update score display
       if (this.scoreText) {

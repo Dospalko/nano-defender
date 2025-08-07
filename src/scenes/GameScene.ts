@@ -239,23 +239,24 @@ export default class GameScene extends Phaser.Scene {
   }
 
   private shoot() {
-    if (this.timers.lastShot < GAME_CONFIG.PLAYER.SHOOT_COOLDOWN) return
-    this.timers.lastShot = 0
+    const cooldown = window.rapidFire ? 600 : GAME_CONFIG.PLAYER.SHOOT_COOLDOWN;
+    if (this.timers.lastShot < cooldown) return;
+    this.timers.lastShot = 0;
 
     const angle = Phaser.Math.Angle.Between(
       this.player.x,
       this.player.y,
       this.input.activePointer.worldX,
       this.input.activePointer.worldY,
-    )
+    );
 
     if (this.powerUpSystem.triple) {
-      ;[-0.25, 0, 0.25].forEach((offset) => this.fireSingleBullet(angle + offset))
+      [-0.25, 0, 0.25].forEach((offset) => this.fireSingleBullet(angle + offset));
     } else {
-      this.fireSingleBullet(angle)
+      this.fireSingleBullet(angle);
     }
 
-    this.combatSystem.createMuzzleFlash(this.player.x, this.player.y)
+    this.combatSystem.createMuzzleFlash(this.player.x, this.player.y);
   }
 
   private fireSingleBullet(angle: number) {
